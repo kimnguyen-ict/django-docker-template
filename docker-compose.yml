@@ -1,0 +1,52 @@
+version: "3"
+
+services:
+  # Web proxy to web app
+  web-proxy:
+    container_name: django_proxy
+    build: .docker/nginx
+    restart: always
+    links:
+      - web
+    ports:
+      - ${DOCKER_WEB_PORT:-8000}:80
+  # Web app
+  web:
+    container_name: django_web
+    build: .docker/web
+    restart: always
+    tty: true
+    volumes:
+      - ./:/srv
+    working_dir: /srv
+    # command: python3 manage.py runserver 0:8000
+    links:
+      - db
+    expose:
+      - 8000
+  # Database storage:
+  db:
+    container_name: django_db
+    image: postgres
+    restart: always
+    volumes:
+      - ${DOCKER_DATA_PATH:-.docker/data}/postgres:/var/lib/postgresql/data
+    expose:
+      - ${DB_PORT:-5432}
+    environment:
+      POSTGRES_DB: ${DB_DATABASE:-django}
+      POSTGRES_USER: ${DB_USERNAME:-django}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-secret}
+  # Database storage for testing:
+  db_test:
+    container_name: django_db_test
+    image: postgres
+    restart: always
+    volumes:
+      - ${DOCKER_DATA_PATH:-.docker/data}/postgres_test:/var/lib/postgresql/data
+    expose:
+      - ${DB_PORT_TEST:-5432}
+    environment:
+      POSTGRES_DB: ${DB_DATABASE_TEST:-django_test}
+      POSTGRES_USER: ${DB_USERNAME_TEST:-django_test}
+      POSTGRES_PASSWORD: ${DB_PASSWORD_TEST:-secret}

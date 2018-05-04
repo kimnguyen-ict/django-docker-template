@@ -1,0 +1,4 @@
+/.idea
+/.docker/data
+.env
+/*/**/__pycache__
